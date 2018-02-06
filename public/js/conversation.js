@@ -155,46 +155,41 @@ var ConversationPanel = (function() {
 
   // Constructs new DOM element from a message payload
   function buildMessageDomElements(newPayload, isUser) {
-    var textArray = isUser ? newPayload.input.text : newPayload.output.text;
-    if (Object.prototype.toString.call( textArray ) !== '[object Array]') {
-      textArray = [textArray];
+    var strMessage = isUser ? newPayload.input.text : newPayload.output.text;
+    if (Object.prototype.toString.call( strMessage ) !== '[object Array]') {
+      strMessage = [strMessage];
     }
     var messageArray = [];
 
-    textArray.forEach(function(currentText) {
-      if (currentText) {
-        var messageJson = {
-          // <div class='segments'>
-          'tagName': 'div',
-          'classNames': ['segments'],
-          'children': [{
-            // <div class='from-user/from-watson latest'>
-            'tagName': 'div',
-            'classNames': [(isUser ? 'from-user' : 'from-watson'), 'latest', ((messageArray.length === 0) ? 'top' : 'sub')],
-            'children': [{
-              // <div class='message-inner'>
-              'tagName': 'div',
-              'classNames': ['message-inner'],
-              'children': [{
-                // <p>{messageText}</p>
-                'tagName': 'p',
-                'text': currentText
-                // 'children' : 'actions' in newPayload.output ? null : [{
-                //   'tagName' : 'p',
-                //   'children' : [{
-                //     'tagName' : 'a',
-                //     'text' : '링크',
-                //     'attributes' : [{ 'name' : 'href', 'value' : newPayload.output != undefined ? newPayload.output.actions : ''}]
-                //   }]
-                //}]
+    var payLoad = newPayload;
+
+    //textArray.forEach(function(currentText) {
+      if (strMessage) {
+        var strMessageJson = " { " +
+          
+          '"tagName": "div",' +
+          '"classNames": ["segments"],' +
+          '"children": [{' +            
+            '"tagName": "div",' +
+            '"classNames": [' + (isUser ? '"from-user"' : '"from-watson"') + ', "latest", ' + ((messageArray.length === 0) ? '"top"' : '"sub"') + '],' +
+            '"children": [{' +
+              
+              '"tagName": "div",' +
+              '"classNames": ["message-inner"],' +
+              '"children": [{' +
                 
-              }]
-            }]
-          }]
-        };
+                '"tagName": "p",' +
+                '"text": "' + strMessage + '"' +
+                
+              '}]' +
+            '}]' +
+          '}]'+
+        '}';
+
+        var messageJson = JSON.parse(strMessageJson);
         messageArray.push(Common.buildDomElement(messageJson));
       }
-    });
+    //});
 
     return messageArray;
   }

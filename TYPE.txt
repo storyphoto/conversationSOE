@@ -1,0 +1,65 @@
+#유형 1. selection box
+
+ "actions": [
+      {
+        "type": "sendOutput",
+        "output": [
+          {
+            "text": "공동 운항사의 경우 운항사 편명에 따라 탑승 터미널이 달라서 소중한 고객님이 잘못 가심 앙되요~ <br><br>번거로우시더라도 고객 예약을 확인하시고 운항 항공사에 해당되는 버튼을 아래에서 꾸욱 눌러주세요",
+            "type": "text"
+          },
+          {
+            "type": "selection",
+            "items": [
+              {
+                "label": "대한항공",
+                "value": "T2"
+              },
+              {
+                "label": "델타항공/에어프랑스/KLM",
+                "value": "T2OAL"
+              },
+              {
+                "label": "기타항공사",
+                "value": "T1"
+              }
+            ]
+          }
+        ]
+      },
+
+
+
+#유형 2.
+
+{
+  "context": {},
+  "output": {
+    "text": {
+      "values": [],
+      "selection_policy": "sequential"
+    },
+    "actions": [
+      {
+        "type": "sendOutput",
+        "output": [
+          {
+            "text": "제 2터미널 2층 중앙 정부종합 행정센터 내 휴대품통관 민원실(인천세관)이 위치해 있습니다.",
+            "type": "text"
+          },
+          {
+            "url": "https://www.coginsight.net/storage/0d5c8496-3f99-424b-9b09-94c9953ff76a",
+            "type": "image",
+            "width": 670,
+            "height": 258
+          },
+          {
+            "url": "https://www.coginsight.net/storage/0d5c8496-3f99-424b-9b09-94c9953ff76a",
+            "type": "link",
+            "label": "자세히 보기"
+          }
+        ]
+      }
+    ]
+  }
+}
