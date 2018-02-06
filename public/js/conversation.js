@@ -161,12 +161,10 @@ var ConversationPanel = (function() {
     }
     var messageArray = [];
 
-    var payLoad = newPayload;
-
     //textArray.forEach(function(currentText) {
       if (strMessage) {
-        var strMessageJson = " { " +
-          
+
+        var strMessageJson1 = " { " +  
           '"tagName": "div",' +
           '"classNames": ["segments"],' +
           '"children": [{' +            
@@ -179,14 +177,56 @@ var ConversationPanel = (function() {
               '"children": [{' +
                 
                 '"tagName": "p",' +
-                '"text": "' + strMessage + '"' +
-                
-              '}]' +
-            '}]' +
-          '}]'+
-        '}';
+                '"text": "' + strMessage + '" } ';
 
-        var messageJson = JSON.parse(strMessageJson);
+
+        var strBody = "";
+
+        if(newPayload.output != undefined && newPayload.output.actions != undefined)
+        {
+          
+          for( var i=0; i<newPayload.output.actions[0].output.length ; i++)
+          {
+            if(newPayload.output.actions[0].output[i].type == "text") // 1. text 인 경우
+            {
+               strBody += ' , {"tagName":"p", "text": "' + newPayload.output.actions[0].output[i].text  + '" } ';       
+            }
+            else if(newPayload.output.actions[0].output[i].type == "image") // 2. image 인 경우
+            {
+              strBody += ' , {"tagName":"img", "attributes": [ { "name": "src", "value": "' + newPayload.output.actions[0].output[i].url  + '" }] } ';  
+            }
+            else if(newPayload.output.actions[0].output[i].type == "link") // 3. link 인 경우
+            {
+              strBody += ' , {"tagName":"a", "attributes": [ {"name":"href", "value": "' + newPayload.output.actions[0].output[i].url  + '" } , { "name":"target", "value":"_blank" }], ';  
+              strBody += ' "text":"자세히 보기"  } ';
+            }
+            // else if(newPayload.output.actions[0].output[i].type == "selection") // 4. Selection 인 경우 (select box)
+            // {
+            //   strBody += ', {"tagName":"div", "children": [ ';                                   
+
+            //   // selection 에 있는 item 개수만큼 반복문
+            //   for(var j=0; j<newPayload.output.actions[0].output[i].items.length; j++ )
+            //   {
+            //     strBody += ' {"tagName":"button", "text":"' + newPayload.output.actions[0].output[i].items[j].label  +'" , "attributes":[ {"name":"data-action", "value":"'+ newPayload.output.actions[0].output[i].items[j].value +'" }';
+            //     if(newPayload.output.actions[0].output[i].items.length -1 != j)
+            //       strBody += ' }], ';
+            //     else
+            //     strBody += ' ] ';
+            //   }
+
+            //   strBody +=  ' }] }';
+            // }
+          }
+     
+        }
+        else
+          var strBody = '';
+
+        var strFooter = ' ] }]  }]  } ';
+
+
+        var messageJson = JSON.parse(strMessageJson1+strBody+strFooter);
+
         messageArray.push(Common.buildDomElement(messageJson));
       }
     //});
