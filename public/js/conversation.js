@@ -164,20 +164,19 @@ var ConversationPanel = (function() {
     //textArray.forEach(function(currentText) {
       if (strMessage) {
 
-        var strMessageJson1 = " { " +  
-          '"tagName": "div",' +
-          '"classNames": ["segments"],' +
-          '"children": [{' +            
-            '"tagName": "div",' +
-            '"classNames": [' + (isUser ? '"from-user"' : '"from-watson"') + ', "latest", ' + ((messageArray.length === 0) ? '"top"' : '"sub"') + '],' +
-            '"children": [{' +
-              
-              '"tagName": "div",' +
-              '"classNames": ["message-inner"],' +
-              '"children": [{' +
+        var strMessageJson1 = " { " + "\n" +
+          '"tagName": "div",' + "\n" +
+          '"classNames": ["segments"],' + "\n" +
+          '"children": [{' + "\n" +
+            '"tagName": "div",' + "\n" +
+            '"classNames": [' + (isUser ? '"from-user"' : '"from-watson"') + ', "latest", ' + ((messageArray.length === 0) ? '"top"' : '"sub"') + '],' + "\n" +
+            '"children": [{' + "\n" +              
+              '"tagName": "div",' + "\n" +
+              '"classNames": ["message-inner"],' +"\n" +
+              '"children": [{' + "\n" +
                 
-                '"tagName": "p",' +
-                '"text": "' + strMessage + '" } ';
+                '"tagName": "p",' + "\n" +
+                '"text": "' + strMessage + '" } ' + "\n";
 
 
         var strBody = "";
@@ -189,40 +188,39 @@ var ConversationPanel = (function() {
           {
             if(newPayload.output.actions[0].output[i].type == "text") // 1. text 인 경우
             {
-               strBody += ' , {"tagName":"p", "text": "' + newPayload.output.actions[0].output[i].text  + '" } ';       
+               strBody += ' , {"tagName":"p", "text": "' + newPayload.output.actions[0].output[i].text  + '" } ' + '\n';       
             }
             else if(newPayload.output.actions[0].output[i].type == "image") // 2. image 인 경우
             {
-              strBody += ' , {"tagName":"img", "attributes": [ { "name": "src", "value": "' + newPayload.output.actions[0].output[i].url  + '" }] } ';  
+              strBody += ' , {"tagName":"img", "attributes": [ { "name": "src", "value": "' + newPayload.output.actions[0].output[i].url  + '" }] } ' + '\n';  
             }
             else if(newPayload.output.actions[0].output[i].type == "link") // 3. link 인 경우
             {
-              strBody += ' , {"tagName":"a", "attributes": [ {"name":"href", "value": "' + newPayload.output.actions[0].output[i].url  + '" } , { "name":"target", "value":"_blank" }], ';  
-              strBody += ' "text":"자세히 보기"  } ';
+              strBody += ' , {"tagName" : "p", "children" : [{ "tagName":"a", "attributes": [ {"name":"href", "value": "' + newPayload.output.actions[0].output[i].url  + '" } ,';
+              strBody += '{ "name":"target", "value":"_blank" }], "text":"자세히 보기" }] } ' + '\n';  
+              
             }
-            // else if(newPayload.output.actions[0].output[i].type == "selection") // 4. Selection 인 경우 (select box)
-            // {
-            //   strBody += ', {"tagName":"div", "children": [ ';                                   
+            else if (newPayload.output.actions[0].output[i].type == "selection") // 4. Selection 인 경우 (select box)
+            {
+              if (newPayload.output.actions[0].output[i].items.length > 0) {
+                strBody += ', {"tagName":"p", "children": [ ';
 
-            //   // selection 에 있는 item 개수만큼 반복문
-            //   for(var j=0; j<newPayload.output.actions[0].output[i].items.length; j++ )
-            //   {
-            //     strBody += ' {"tagName":"button", "text":"' + newPayload.output.actions[0].output[i].items[j].label  +'" , "attributes":[ {"name":"data-action", "value":"'+ newPayload.output.actions[0].output[i].items[j].value +'" }';
-            //     if(newPayload.output.actions[0].output[i].items.length -1 != j)
-            //       strBody += ' }], ';
-            //     else
-            //     strBody += ' ] ';
-            //   }
-
-            //   strBody +=  ' }] }';
-            // }
+                // selection 에 있는 item 개수만큼 반복문
+                for (var j = 0; j < newPayload.output.actions[0].output[i].items.length; j++) {
+                  if (j != 0)
+                    strBody += ', ';
+                  strBody += ' {"tagName":"button", "text":"' + newPayload.output.actions[0].output[i].items[j].label;
+                  strBody += '" , "attributes":[ {"name":"data-action", "value":"' + newPayload.output.actions[0].output[i].items[j].value + '" },';
+                  strBody += '{"name" : "onclick", "value":"var e = $.Event(\'keydown\', {keyCode : 13});';
+                  strBody += '$(\'#textInput\').val(\'' +  newPayload.output.actions[0].output[i].items[j].label + '\'); $(\'#textInput\').trigger(e);" }] }';
+                }
+                strBody += ' ]}';
+              }
+            }
           }
-     
         }
-        else
-          var strBody = '';
 
-        var strFooter = ' ] }]  }]  } ';
+        var strFooter = ' ]\n}]\n}]\n} ';
 
 
         var messageJson = JSON.parse(strMessageJson1+strBody+strFooter);
@@ -260,6 +258,33 @@ var ConversationPanel = (function() {
       if (latestResponse) {
         context = latestResponse.context;
       }
+
+      // API 호출 전 Context 셋팅 작업 
+      if (latestResponse.output != undefined && latestResponse.output.actions != undefined) {
+        
+        // 서버에서 return된 action 중 sendMessage에 있는 context를 추출
+        var appendContext;
+        for (var i = 0; i < latestResponse.output.actions.length; i++) {
+          if (latestResponse.output.actions[i].hasOwnProperty('type') && latestResponse.output.actions[i].type == 'sendMessage')
+            appendContext = latestResponse.output.actions[i];
+        }
+
+        // client에서 셋팅 해야하는 context 키 값을 실제 사용자가 입력한 값과 대조하여 실제 value로 변경
+        var strAppendContext;
+        if (appendContext != undefined && appendContext.hasOwnProperty('context'))
+        {
+          var contextValue = $(".from-watson.latest button[data-action='first_class']").first().data('action');
+          strAppendContext = JSON.stringify(appendContext.context).replace('<%= _selection.value %>', contextValue);
+          
+        }
+
+        // 기존 context 와 병합
+        if (context == undefined && strAppendContext != undefined)
+          context = strAppendContext;
+        else if (context != undefined && strAppendContext != undefined)
+          context = $.extend(context, JSON.parse(strAppendContext))
+      }
+    
 
       // Send the user message
       Api.sendRequest(inputBox.value, context);
