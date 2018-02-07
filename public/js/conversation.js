@@ -220,6 +220,7 @@ var ConversationPanel = (function() {
                     strBody += ', ';
                   strBody += ' {"tagName":"button", "text":"' + newPayload.output.actions[0].output[i].items[j].label;
                   strBody += '" , "attributes":[ {"name":"data-action", "value":"' + newPayload.output.actions[0].output[i].items[j].value + '" },';
+                  strBody += '{"name":"data-value", "value":"' + newPayload.output.actions[0].output[i].items[j].label + '" }, ';
                   strBody += '{"name" : "onclick", "value":"ConversationPanel.sendMessageByButton(this);" }] }';
                 }
                 strBody += ' ]}';
@@ -284,8 +285,8 @@ var ConversationPanel = (function() {
         var strAppendContext;
         if (appendContext != undefined && appendContext.hasOwnProperty('context'))
         {
-          var contextValue = $(".from-watson.latest button[data-action='first_class']").first().data('action');
-          strAppendContext = JSON.stringify(appendContext.context).replace('<%= _selection.value %>', contextValue);
+          var contextValue = $(".from-watson.latest button[data-value='" + inputBox.value + "']").first().data('action');
+          strAppendContext = JSON.stringify(appendContext.context).replace('<%= _selection.value %>', contextValue == undefined ? null : contextValue);
           
         }
 
