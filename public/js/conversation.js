@@ -181,7 +181,8 @@ var ConversationPanel = (function() {
 
         var strBody = "";
 
-        if(newPayload.output != undefined && newPayload.output.actions != undefined)
+        if(newPayload.hasOwnProperty('output') && newPayload.output != undefined && 
+           newPayload.output.hasOwnProperty('actions') && newPayload.output.actions != undefined)
         {
           
           for( var i=0; i<newPayload.output.actions[0].output.length ; i++)
@@ -246,6 +247,8 @@ var ConversationPanel = (function() {
     if (scrollEl) {
       scrollingChat.scrollTop = scrollEl.offsetTop;
     }
+
+    $('#textInput').focus();
   }
 
   // Handles the submission of input
@@ -260,7 +263,8 @@ var ConversationPanel = (function() {
       }
 
       // API 호출 전 Context 셋팅 작업 
-      if (latestResponse.output != undefined && latestResponse.output.actions != undefined) {
+      if (latestResponse.hasOwnProperty('output') && latestResponse.output != undefined &&
+          latestResponse.output.hasOwnProperty('actions') && latestResponse.output.actions != undefined) {
         
         // 서버에서 return된 action 중 sendMessage에 있는 context를 추출
         var appendContext;
