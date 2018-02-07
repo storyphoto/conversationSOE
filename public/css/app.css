@@ -103,6 +103,11 @@ div {
   transition-timing-function: ease-in;
 }
 
+.message-inner button {
+  display:block;
+  width: 100%;
+}
+
 .load .message-inner {
   opacity: 1;
   margin-top: 0.3125rem;

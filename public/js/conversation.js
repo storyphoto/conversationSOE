@@ -20,7 +20,8 @@ var ConversationPanel = (function() {
   // Publicly accessible methods defined
   return {
     init: init,
-    inputKeyDown: inputKeyDown
+    inputKeyDown: inputKeyDown,
+    sendMessageByButton : sendMessageByButton
   };
 
   // Initialize the module
@@ -153,6 +154,13 @@ var ConversationPanel = (function() {
     return null;
   }
 
+  function sendMessageByButton(obj)
+  {
+    var e = $.Event('keydown', {keyCode : 13});
+    $('#textInput').val($(obj).text());
+    $('#textInput').trigger(e);
+  }
+
   // Constructs new DOM element from a message payload
   function buildMessageDomElements(newPayload, isUser) {
     var strMessage = isUser ? newPayload.input.text : newPayload.output.text;
@@ -181,7 +189,7 @@ var ConversationPanel = (function() {
 
         var strBody = "";
 
-        if(newPayload.hasOwnProperty('output') && newPayload.output != undefined && 
+        if(newPayload && newPayload.hasOwnProperty('output') && newPayload.output != undefined && 
            newPayload.output.hasOwnProperty('actions') && newPayload.output.actions != undefined)
         {
           
@@ -204,7 +212,7 @@ var ConversationPanel = (function() {
             else if (newPayload.output.actions[0].output[i].type == "selection") // 4. Selection 인 경우 (select box)
             {
               if (newPayload.output.actions[0].output[i].items.length > 0) {
-                strBody += ', {"tagName":"p", "children": [ ';
+                strBody += ', {"tagName":"div", "children": [ ';
 
                 // selection 에 있는 item 개수만큼 반복문
                 for (var j = 0; j < newPayload.output.actions[0].output[i].items.length; j++) {
@@ -212,8 +220,7 @@ var ConversationPanel = (function() {
                     strBody += ', ';
                   strBody += ' {"tagName":"button", "text":"' + newPayload.output.actions[0].output[i].items[j].label;
                   strBody += '" , "attributes":[ {"name":"data-action", "value":"' + newPayload.output.actions[0].output[i].items[j].value + '" },';
-                  strBody += '{"name" : "onclick", "value":"var e = $.Event(\'keydown\', {keyCode : 13});';
-                  strBody += '$(\'#textInput\').val(\'' +  newPayload.output.actions[0].output[i].items[j].label + '\'); $(\'#textInput\').trigger(e);" }] }';
+                  strBody += '{"name" : "onclick", "value":"ConversationPanel.sendMessageByButton(this);" }] }';
                 }
                 strBody += ' ]}';
               }
@@ -263,7 +270,7 @@ var ConversationPanel = (function() {
       }
 
       // API 호출 전 Context 셋팅 작업 
-      if (latestResponse.hasOwnProperty('output') && latestResponse.output != undefined &&
+      if (latestResponse && latestResponse.hasOwnProperty('output') && latestResponse.output != undefined &&
           latestResponse.output.hasOwnProperty('actions') && latestResponse.output.actions != undefined) {
         
         // 서버에서 return된 action 중 sendMessage에 있는 context를 추출
