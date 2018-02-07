@@ -11,7 +11,8 @@
     "test-unit": "istanbul cover ./node_modules/mocha/bin/_mocha test/unit",
     "lint": "eslint .",
     "autofix": "eslint --fix .",
-    "codecov": "npm run test && (codecov || true)"
+    "codecov": "npm run test && (codecov || true)",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -33,9 +34,6 @@
     "mocha": "^2.4.5",
     "phantomjs-prebuilt": "^2.1.15",
     "supertest": "^1.2.0"
-  },
-  "scripts": {
-    "start": "node index.js"
   },
   "engines": {
     "node": ">= 6.9.x",
