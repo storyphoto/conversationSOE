@@ -139,6 +139,10 @@ var ConversationPanel = (function() {
       });
       // Move chat to the most recent messages when new messages are added
       scrollToChatBottom();
+      $(".img-message").load(function() {
+        //console.log(".img-message loaded");
+        scrollToChatBottom();
+      });
     }
   }
 
@@ -170,73 +174,111 @@ var ConversationPanel = (function() {
     var messageArray = [];
 
     //textArray.forEach(function(currentText) {
-      if (strMessage) {
+    const msgInnerArray = [];
 
-        var strMessageJson1 = " { " + "\n" +
-          '"tagName": "div",' + "\n" +
-          '"classNames": ["segments"],' + "\n" +
-          '"children": [{' + "\n" +
-            '"tagName": "div",' + "\n" +
-            '"classNames": [' + (isUser ? '"from-user"' : '"from-watson"') + ', "latest", ' + ((messageArray.length === 0) ? '"top"' : '"sub"') + '],' + "\n" +
-            '"children": [{' + "\n" +              
-              '"tagName": "div",' + "\n" +
-              '"classNames": ["message-inner"],' +"\n" +
-              '"children": [{' + "\n" +
-                
-                '"tagName": "p",' + "\n" +
-                '"text": "' + strMessage + '" } ' + "\n";
+    if(strMessage) {
+      const strMessageJson = {
+        // <p>{messageText}</p>
+        'tagName': 'p',
+        'text': strMessage
+      };
+      msgInnerArray.push(strMessageJson);
+    }
 
+    if(newPayload && newPayload.hasOwnProperty('output') && newPayload.output != undefined && 
+        newPayload.output.hasOwnProperty('actions') && newPayload.output.actions != undefined) {
 
-        var strBody = "";
-
-        if(newPayload && newPayload.hasOwnProperty('output') && newPayload.output != undefined && 
-           newPayload.output.hasOwnProperty('actions') && newPayload.output.actions != undefined)
-        {
-          
-          for( var i=0; i<newPayload.output.actions[0].output.length ; i++)
-          {
-            if(newPayload.output.actions[0].output[i].type == "text") // 1. text 인 경우
-            {
-               strBody += ' , {"tagName":"p", "text": "' + newPayload.output.actions[0].output[i].text  + '" } ' + '\n';       
+      newPayload.output.actions.forEach(function(action) {
+        if(action.type == 'sendOutput') {
+          action.output.forEach(function(output) {
+            if(output.type == 'text') { // 1. text 인 경우
+              const textJson = {
+                'tagName': 'p',
+                'text': output.text
+              };
+              msgInnerArray.push(textJson);
             }
-            else if(newPayload.output.actions[0].output[i].type == "image") // 2. image 인 경우
-            {
-              strBody += ' , {"tagName":"img", "attributes": [ { "name": "src", "value": "' + newPayload.output.actions[0].output[i].url  + '" }] } ' + '\n';  
+            else if (output.type == 'image') { // 2. image 인 경우
+              const imgJson = {
+                "tagName": "img",
+                "classNames": ["img-message"],
+                "attributes" : [
+                  { "name": "src", "value": output.url }
+                ]
+              };
+              msgInnerArray.push(imgJson);
             }
-            else if(newPayload.output.actions[0].output[i].type == "link") // 3. link 인 경우
-            {
-              strBody += ' , {"tagName" : "p", "children" : [{ "tagName":"a", "attributes": [ {"name":"href", "value": "' + newPayload.output.actions[0].output[i].url  + '" } ,';
-              strBody += '{ "name":"target", "value":"_blank" }], "text":"자세히 보기" }] } ' + '\n';  
-              
-            }
-            else if (newPayload.output.actions[0].output[i].type == "selection") // 4. Selection 인 경우 (select box)
-            {
-              if (newPayload.output.actions[0].output[i].items.length > 0) {
-                strBody += ', {"tagName":"div", "children": [ ';
+            else if (output.type == 'selection') { // 4. Selection 인 경우 (select box)
+              const buttonArray = [];
+              output.items.forEach(function(selectionItem) {
+                var buttonObj = {
+                  "tagName": "button",
+                  "text": selectionItem.label,
+                  "classNames": ["btn-message"],
+                  "attributes": [
+                    { "name": "data-action", "value" : selectionItem.value },
+                    { "name": "data-value", "value" : selectionItem.label },
+                    { "name": "onclick", "value" : "ConversationPanel.sendMessageByButton(this);" }
+                  ]
+                };
+                buttonArray.push(buttonObj);
+              });
 
-                // selection 에 있는 item 개수만큼 반복문
-                for (var j = 0; j < newPayload.output.actions[0].output[i].items.length; j++) {
-                  if (j != 0)
-                    strBody += ', ';
-                  strBody += ' {"tagName":"button", "text":"' + newPayload.output.actions[0].output[i].items[j].label;
-                  strBody += '" , "attributes":[ {"name":"data-action", "value":"' + newPayload.output.actions[0].output[i].items[j].value + '" },';
-                  strBody += '{"name":"data-value", "value":"' + newPayload.output.actions[0].output[i].items[j].label + '" }, ';
-                  strBody += '{"name" : "onclick", "value":"ConversationPanel.sendMessageByButton(this);" }] }';
-                }
-                strBody += ' ]}';
-              }
+              const selectionJson = {
+                "tagName": "div",
+                "children": buttonArray
+              };
+              msgInnerArray.push(selectionJson);
             }
-          }
+          });
+
+          action.output.forEach(function(output) {
+            if (output.type == 'link') { // 3. link 인 경우
+
+              const linkJson = {
+                "tagName": "div",
+                "children": [{
+                  "tagName": "a",
+                  "attributes": [
+                    { "name": "href", "value": output.url },
+                    { "name": "target", "value": "_blank" }
+                  ],
+                  "children": [
+                    {
+                      "tagName": "button",
+                      "classNames" : ["link-btn-message"],
+                      "text": "자세히 보기"
+                    }
+                  ]
+                }]
+              };
+              msgInnerArray.push(linkJson);
+            }
+          });
         }
+      });
 
-        var strFooter = ' ]\n}]\n}]\n} ';
+    }
 
+    const messageJson = {
+      // <div class='segments'>
+      'tagName': 'div',
+      'classNames': ['segments'],
+      'children': [{
+        // <div class='from-user/from-watson latest'>
+        'tagName': 'div',
+        'classNames': [(isUser ? 'from-user' : 'from-watson'), 'latest', ((messageArray.length === 0) ? 'top' : 'sub')],
+        'children': [{
+          // <div class='message-inner'>
+          'tagName': 'div',
+          'classNames': ['message-inner'],
+          'children': msgInnerArray
+        }]
+      }]
+    };
 
-        var messageJson = JSON.parse(strMessageJson1+strBody+strFooter);
-
-        messageArray.push(Common.buildDomElement(messageJson));
-      }
-    //});
+    messageArray.push(Common.buildDomElement(messageJson));
+    //}
 
     return messageArray;
   }
@@ -252,8 +294,10 @@ var ConversationPanel = (function() {
     // Scroll to the latest message sent by the user
     var scrollEl = scrollingChat.querySelector(settings.selectors.fromUser
             + settings.selectors.latest);
+                
     if (scrollEl) {
-      scrollingChat.scrollTop = scrollEl.offsetTop;
+      //scrollingChat.scrollTop = scrollEl.offsetTop;      
+      scrollingChat.scrollTop = scrollingChat.scrollHeight;
     }
 
     $('#textInput').focus();
