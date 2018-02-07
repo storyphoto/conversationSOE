@@ -78,7 +78,7 @@ div {
 
 #scrollingChat {
   margin: 0.75rem;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   height: calc(100% - 4rem);
 }
