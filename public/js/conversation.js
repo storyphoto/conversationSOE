@@ -129,7 +129,7 @@ var ConversationPanel = (function() {
       if (previousLatest) {
         Common.listForEach(previousLatest, function(element) {
           element.classList.remove('latest');
-          $(element).find($("button")).prop("disabled", true);
+          $(".btn-message").prop('disabled', true);
         });
       }
 
